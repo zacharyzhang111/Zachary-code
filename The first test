@@ -1,0 +1,38 @@
+#include <Wire.h>
+
+#define MPR121_ADDRESS 0x5A
+#define MPR121_FILTDATA_0L   0x04
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();
+}
+
+void loop() {
+  for (uint8_t i = 0; i < 12; i++) {
+    uint16_t data = readRegister16(MPR121_FILTDATA_0L + i*2);
+
+    // 阈值判断 (你可以根据实际情况调整 3)
+    bool isTouched = (data < 3);
+
+    Serial.print("Electrode ");
+    Serial.print(i);
+    Serial.print(": Touched=");
+    Serial.print(isTouched ? "YES" : "NO");
+    Serial.print("  Value=");
+    Serial.println(data);
+  }
+  Serial.println("------");
+  delay(300);
+}
+
+uint16_t readRegister16(uint8_t reg) {
+  Wire.beginTransmission(MPR121_ADDRESS);
+  Wire.write(reg);
+  Wire.endTransmission(false);
+
+  Wire.requestFrom(MPR121_ADDRESS, 2);
+  uint16_t value = Wire.read();
+  value |= ((uint16_t)Wire.read() << 8);
+  return value;
+}
